@@ -8,12 +8,17 @@ import java.util.Stack;
 
 /**
  * Represents a deck of playing cards for Cincuentazo game.
+ * Manages a standard 52-card French deck with shuffling and card distribution.
+ *
+ * @author Jairo Andrés Tegue
+ * @version 1.0
+ * @since 2025
  */
 public class Deck {
     private Stack<Card> deckOfCards;
 
     /**
-     * Constructs a new deck of playing cards and initializes it.
+     * Constructs a new deck of playing cards and initializes it with 52 cards.
      */
     public Deck() {
         deckOfCards = new Stack<>();
@@ -22,12 +27,13 @@ public class Deck {
 
     /**
      * Initializes the deck with cards based on the EISCUnoEnum values.
+     * Creates all 52 cards from a standard French deck (hearts, diamonds, spades, clubs)
+     * and shuffles them.
      */
     private void initializeDeck() {
         System.out.println("Initializing Cincuentazo deck...");
 
         for (EISCUnoEnum cardEnum : EISCUnoEnum.values()) {
-            // Include only playing cards (hearts, diamonds, spades, clubs)
             if (cardEnum.name().startsWith("COR_") ||
                     cardEnum.name().startsWith("DIAM_") ||
                     cardEnum.name().startsWith("PIC_") ||
@@ -53,6 +59,9 @@ public class Deck {
 
     /**
      * Extracts the card value from the enum name.
+     *
+     * @param name the enum name to parse
+     * @return the card value (2-10, J, Q, K, A) or "0" for special cards
      */
     private String getCardValue(String name) {
         if (name.contains("2")) return "2";
@@ -69,7 +78,6 @@ public class Deck {
         if (name.contains("K")) return "K";
         if (name.contains("AS")) return "A";
 
-        // For deck and card back, return a default value
         if (name.equals("DECK_OF_CARDS") || name.equals("CARD_BACK")) {
             return "0";
         }
@@ -79,6 +87,9 @@ public class Deck {
 
     /**
      * Extracts the card color/suit from the enum name.
+     *
+     * @param name the enum name to parse
+     * @return the card suit (HEARTS, DIAMONDS, SPADES, CLUBS) or null
      */
     private String getCardColor(String name) {
         if (name.startsWith("COR_")) {
@@ -119,9 +130,9 @@ public class Deck {
     }
 
     /**
-     * Gets the number of cards in the deck.
+     * Gets the number of cards remaining in the deck.
      *
-     * @return the number of cards remaining
+     * @return the number of cards in the deck
      */
     public int size() {
         return deckOfCards.size();
@@ -130,7 +141,7 @@ public class Deck {
     /**
      * Adds cards to the bottom of the deck.
      *
-     * @param cards the cards to add
+     * @param cards the stack of cards to add to the deck
      */
     public void addCards(Stack<Card> cards) {
         deckOfCards.addAll(0, cards);
@@ -138,12 +149,12 @@ public class Deck {
 
     /**
      * Takes all cards from the deck except the last one for recycling.
+     * Used when the deck needs to be replenished during gameplay.
      *
      * @return a stack containing all cards except the last one
      */
     public Stack<Card> takeAllExceptLast() {
         Stack<Card> recycledCards = new Stack<>();
-        // Keep the last card in deck, take all others for recycling
         while (deckOfCards.size() > 1) {
             recycledCards.push(deckOfCards.pop());
         }
@@ -152,7 +163,7 @@ public class Deck {
 
     /**
      * Recycles cards by adding them to the deck and shuffling.
-     * Used when the deck needs to be replenished during gameplay.
+     * Used when the deck runs out of cards during gameplay.
      *
      * @param cards the cards to recycle into the deck
      */

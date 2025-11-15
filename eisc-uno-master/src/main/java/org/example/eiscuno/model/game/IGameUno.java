@@ -8,9 +8,9 @@ import org.example.eiscuno.model.exceptions.GameFiftyException;
  * Interface representing the Cincuentazo game functionality.
  * Defines the contract for game operations and state management.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public interface IGameUno {
 
@@ -36,9 +36,10 @@ public interface IGameUno {
     void playCard(Card card) throws GameFiftyException;
 
     /**
-     * Handles the action when a player shouts "Uno" (maintained for compatibility).
+     * Handles the action when a player shouts "50ZO".
+     * Maintained for compatibility with the original interface.
      *
-     * @param playerWhoSang the identifier of the player who shouted "Uno"
+     * @param playerWhoSang the identifier of the player who shouted "50ZO"
      */
     void haveSungOne(String playerWhoSang);
 
@@ -51,7 +52,7 @@ public interface IGameUno {
     Card[] getCurrentVisibleCardsHumanPlayer(int posInitCardToShow);
 
     /**
-     * Checks if the game is over (only one player remains).
+     * Checks if the game is over (only one player remains active).
      *
      * @return true if the game is over, false otherwise
      */

@@ -10,10 +10,11 @@ import java.io.IOException;
 
 /**
  * The main class of the Cincuentazo application.
+ * Entry point for the JavaFX application.
  *
- * @author Jairo A. Tegue
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 202
+ * @since 2025
  */
 public class Main extends Application {
 
@@ -34,7 +35,6 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage primaryStage) throws IOException {
-        // Load the player selection screen instead of directly loading the game
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/eiscuno/player-selection-view.fxml"));
         Parent root = loader.load();
 
@@ -42,7 +42,7 @@ public class Main extends Application {
 
         Image appIcon = new Image(getClass().getResourceAsStream("/org/example/eiscuno/images/Fondo_50ZO.png"));
         primaryStage.getIcons().add(appIcon);
-        primaryStage.setTitle("Cincuentazo - Selección de Jugadores");
+        primaryStage.setTitle("Cincuentazo - Seleccion de Jugadores");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();

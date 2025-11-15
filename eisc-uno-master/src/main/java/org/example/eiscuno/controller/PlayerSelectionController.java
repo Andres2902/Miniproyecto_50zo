@@ -11,11 +11,11 @@ import java.io.IOException;
 
 /**
  * Controller for the player selection screen in Cincuentazo game.
- * Allows the user to select the number of machine players (1-3).
+ * Allows the user to select the number of machine players (1-3) before starting the game.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class PlayerSelectionController {
 
@@ -30,6 +30,7 @@ public class PlayerSelectionController {
 
     /**
      * Initializes the controller and sets up button actions.
+     * Called automatically after the FXML file has been loaded.
      */
     @FXML
     public void initialize() {
@@ -52,11 +53,9 @@ public class PlayerSelectionController {
      */
     private void startGameWithMachines(int numberOfMachines) {
         try {
-            // Close the selection window
             Stage currentStage = (Stage) btnOneMachine.getScene().getWindow();
             currentStage.close();
 
-            // Start the main game with selected number of machines
             startMainGame(numberOfMachines);
         } catch (IOException e) {
             System.err.println("Error starting game: " + e.getMessage());
@@ -74,14 +73,13 @@ public class PlayerSelectionController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/eiscuno/game-uno-view.fxml"));
         Parent root = loader.load();
 
-        // Pass the number of machines to the main controller
         GameUnoController mainController = loader.getController();
         mainController.setNumberOfMachinePlayers(numberOfMachines);
 
         Stage gameStage = new Stage();
         Image appIcon = new Image(getClass().getResourceAsStream("/org/example/eiscuno/images/Fondo_50ZO.png"));
         gameStage.getIcons().add(appIcon);
-        gameStage.setTitle("Cincuentazo - " + numberOfMachines + " Máquina(s)");
+        gameStage.setTitle("Cincuentazo - " + numberOfMachines + " Maquina(s)");
         gameStage.setScene(new Scene(root));
         gameStage.setResizable(false);
         gameStage.show();

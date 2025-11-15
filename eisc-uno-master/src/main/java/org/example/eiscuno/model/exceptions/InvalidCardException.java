@@ -4,9 +4,9 @@ package org.example.eiscuno.model.exceptions;
  * Unchecked exception thrown when an invalid card operation is attempted.
  * This exception indicates programming errors or invalid game state.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class InvalidCardException extends RuntimeException {
 
@@ -38,10 +38,10 @@ public class InvalidCardException extends RuntimeException {
     }
 
     /**
-     * Constructs a new InvalidCardException for null card operations.
+     * Creates a new InvalidCardException for null card operations.
      *
      * @param operation the operation being performed when the exception occurred
-     * @return a new InvalidCardException instance
+     * @return a new InvalidCardException instance for null card error
      */
     public static InvalidCardException forNullCard(String operation) {
         return new InvalidCardException(
@@ -52,11 +52,11 @@ public class InvalidCardException extends RuntimeException {
     }
 
     /**
-     * Constructs a new InvalidCardException for invalid card values.
+     * Creates a new InvalidCardException for invalid card values.
      *
      * @param cardValue the invalid card value
      * @param operation the operation being performed
-     * @return a new InvalidCardException instance
+     * @return a new InvalidCardException instance for invalid value error
      */
     public static InvalidCardException forInvalidValue(String cardValue, String operation) {
         return new InvalidCardException(
@@ -87,7 +87,7 @@ public class InvalidCardException extends RuntimeException {
     /**
      * Gets a detailed message including card information.
      *
-     * @return the detailed error message
+     * @return the formatted error message with card and operation details
      */
     @Override
     public String getMessage() {

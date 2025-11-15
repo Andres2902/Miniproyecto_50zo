@@ -7,9 +7,10 @@ import org.example.eiscuno.model.game.GameUnoModel;
 import org.example.eiscuno.model.player.Player;
 
 /**
- * Thread for managing machine player actions in Cincuentazo game
+ * Thread for managing machine player actions in Cincuentazo game.
+ * Handles automated card playing, decision making, and turn management for AI players.
  *
- * @author Jairo A. Tegue
+ * @author Jairo Andrés Tegue
  * @version 1.0
  * @since 2025
  */
@@ -20,6 +21,13 @@ public class ThreadMachinePlayer extends Thread {
     private volatile boolean running;
     private final int playerIndex;
 
+    /**
+     * Constructs a new ThreadMachinePlayer for a specific machine player.
+     *
+     * @param machinePlayer the machine player this thread controls
+     * @param game the game model
+     * @param tableImageView the ImageView displaying the current table card
+     */
     public ThreadMachinePlayer(Player machinePlayer, GameUnoModel game, ImageView tableImageView) {
         this.machinePlayer = machinePlayer;
         this.game = game;
@@ -29,6 +37,10 @@ public class ThreadMachinePlayer extends Thread {
         setName("MachinePlayer-" + playerIndex);
     }
 
+    /**
+     * Main execution loop for the machine player thread.
+     * Continuously checks if it's this player's turn and performs actions accordingly.
+     */
     @Override
     public void run() {
         while (running && !game.isGameOver()) {
@@ -36,7 +48,7 @@ public class ThreadMachinePlayer extends Thread {
                 if (isMyTurn() && !game.isPlayerEliminated(machinePlayer)) {
                     performMachineTurn();
                 }
-                Thread.sleep(1000); // Check every second
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 break;
             } catch (Exception e) {
@@ -45,19 +57,26 @@ public class ThreadMachinePlayer extends Thread {
         }
     }
 
+    /**
+     * Checks if it is currently this machine player's turn.
+     *
+     * @return true if it's this player's turn, false otherwise
+     */
     private boolean isMyTurn() {
         Player currentPlayer = game.getCurrentPlayer();
         return currentPlayer != null && currentPlayer.equals(machinePlayer);
     }
 
+    /**
+     * Performs a complete turn for the machine player.
+     * Includes thinking delay, card selection, playing, and drawing.
+     */
     private void performMachineTurn() {
         try {
-            // Wait 2-4 seconds before playing
             Thread.sleep(2000 + (int)(Math.random() * 2000));
 
             Platform.runLater(() -> {
                 try {
-                    // Check if machine is eliminated before attempting to play
                     if (game.isPlayerEliminated(machinePlayer)) {
                         System.out.println("Machine " + playerIndex + " is already eliminated");
                         game.nextTurn();
@@ -67,15 +86,12 @@ public class ThreadMachinePlayer extends Thread {
                     Card playableCard = game.findPlayableCard(machinePlayer);
 
                     if (playableCard != null) {
-                        // Play card
                         game.playCard(playableCard, machinePlayer);
                         tableImageView.setImage(playableCard.getImage());
                         System.out.println("Machine " + playerIndex + " played: " + playableCard.getValue());
 
-                        // Take card after playing
                         game.takeCardFromDeck(machinePlayer);
 
-                        // Check if eliminated after taking card
                         if (!game.canPlayerPlay(machinePlayer)) {
                             System.out.println("Machine " + playerIndex + " eliminated - no playable cards");
                             game.eliminatePlayer(machinePlayer);
@@ -84,7 +100,6 @@ public class ThreadMachinePlayer extends Thread {
                         }
 
                     } else {
-                        // No playable cards - take card and check elimination
                         game.takeCardFromDeck(machinePlayer);
 
                         if (!game.canPlayerPlay(machinePlayer)) {
@@ -98,7 +113,7 @@ public class ThreadMachinePlayer extends Thread {
                 } catch (Exception e) {
                     System.err.println("Error in machine turn: " + e.getMessage());
                     try {
-                        game.nextTurn(); // Ensure turn advances even on error
+                        game.nextTurn();
                     } catch (Exception ex) {
                         System.err.println("Error advancing turn: " + ex.getMessage());
                     }
@@ -110,11 +125,19 @@ public class ThreadMachinePlayer extends Thread {
         }
     }
 
+    /**
+     * Stops the thread execution gracefully.
+     */
     public void stopThread() {
         running = false;
         interrupt();
     }
 
+    /**
+     * Checks if the thread is currently running.
+     *
+     * @return true if the thread is running, false otherwise
+     */
     public boolean isRunning() {
         return running;
     }

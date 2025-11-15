@@ -4,9 +4,9 @@ package org.example.eiscuno.model.exceptions;
  * Checked exception thrown when a card play would exceed the maximum sum of 50.
  * This exception indicates an invalid move in the Cincuentazo game.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class GameFiftyException extends GameException {
 
@@ -44,7 +44,7 @@ public class GameFiftyException extends GameException {
     /**
      * Gets the current sum when the exception occurred.
      *
-     * @return the current sum
+     * @return the current sum on the table
      */
     public int getCurrentSum() {
         return currentSum;
@@ -53,7 +53,7 @@ public class GameFiftyException extends GameException {
     /**
      * Gets the card value that caused the exception.
      *
-     * @return the card value
+     * @return the value of the card that would exceed the limit
      */
     public int getCardValue() {
         return cardValue;

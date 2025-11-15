@@ -28,10 +28,10 @@ import java.util.Observable;
 import java.util.Observer;
 
 /**
- * Main controller for the Cincuentazo game
- * Manages game flow, UI updates and user interactions
+ * Main controller for the Cincuentazo game.
+ * Manages game flow, UI updates and user interactions following the MVC pattern.
  *
- * @author Jairo A. Tegue
+ * @author Jairo Andrés Tegue
  * @version 1.0
  * @since 2025
  */
@@ -57,6 +57,10 @@ public class GameUnoController implements Observer {
     private List<ThreadMachinePlayer> machineThreads;
     private boolean isHumanTurn;
 
+    /**
+     * Initializes the controller.
+     * Called automatically after the FXML file has been loaded.
+     */
     @FXML
     public void initialize() {
         this.posInitCardToShow = 0;
@@ -68,24 +72,36 @@ public class GameUnoController implements Observer {
         initializeUI();
     }
 
+    /**
+     * Initializes the user interface with default values.
+     */
     private void initializeUI() {
-        lblGameStatus.setText("Select a card to play...");
-        lblTimer.setText("Time: 00:00");
+        lblGameStatus.setText("Selecciona una carta para jugar");
+        lblTimer.setText("Tiempo: 00:00");
         lblCardsRemaining.setText("52");
         lblCardsOnTable.setText("0");
-        lblHumanCards.setText("Your cards: 0");
-        lblActivePlayers.setText("Active players: 0");
+        lblHumanCards.setText("Tus cartas: 0");
+        lblActivePlayers.setText("Jugadores activos: 0");
         progressSum.setProgress(0.0);
     }
 
+    /**
+     * Sets the number of machine players and initializes the game.
+     *
+     * @param numberOfMachinePlayers the number of machine players (1-3)
+     */
     public void setNumberOfMachinePlayers(int numberOfMachinePlayers) {
         this.numberOfMachinePlayers = numberOfMachinePlayers;
         initializeGame();
     }
 
+    /**
+     * Initializes the game with players, deck, and table.
+     * Starts the game timer and machine player threads.
+     */
     private void initializeGame() {
         try {
-            Player humanPlayer = new Player("HUMAN_PLAYER");
+            Player humanPlayer = new Player("JUGADOR_HUMANO");
             Deck deck = new Deck();
             Table table = new Table();
 
@@ -95,19 +111,21 @@ public class GameUnoController implements Observer {
 
             gameTimer.startTimer();
 
-            // Set initial turn
-            this.isHumanTurn = gameModel.getCurrentPlayer().getTypePlayer().startsWith("HUMAN");
-            gameTimer.startTurnTimer("Human Player");
+            this.isHumanTurn = gameModel.getCurrentPlayer().getTypePlayer().startsWith("JUGADOR_HUMANO");
+            gameTimer.startTurnTimer("Jugador Humano");
 
             updateUI();
             startMachineThreads();
             updateCurrentPlayerIndicator();
 
         } catch (Exception e) {
-            showErrorAlert("Error initializing game", e.getMessage());
+            showErrorAlert("Error al inicializar el juego", e.getMessage());
         }
     }
 
+    /**
+     * Starts the threads for all machine players.
+     */
     private void startMachineThreads() {
         for (int i = 0; i < numberOfMachinePlayers; i++) {
             ThreadMachinePlayer machineThread = new ThreadMachinePlayer(
@@ -120,6 +138,9 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Updates all UI components with current game state.
+     */
     private void updateUI() {
         printCardsHumanPlayer();
         updateTableInfo();
@@ -128,19 +149,22 @@ public class GameUnoController implements Observer {
         updateProgressBar();
         lblGameStatus.setText(gameModel.getGameStatus());
 
-        // Ensure table card is always displayed
         ensureTableCardDisplayed();
 
         if (gameModel != null && gameModel.getCurrentPlayer() != null) {
-            this.isHumanTurn = gameModel.getCurrentPlayer().getTypePlayer().startsWith("HUMAN");
+            this.isHumanTurn = gameModel.getCurrentPlayer().getTypePlayer().startsWith("JUGADOR_HUMANO");
         }
     }
 
+    /**
+     * Displays the human player's cards in the grid pane.
+     * Shows visual indicators for playable cards (green) and unplayable cards (red).
+     */
     private void printCardsHumanPlayer() {
         this.gridPaneCardsPlayer.getChildren().clear();
 
         if (gameModel.isPlayerEliminated(gameModel.getHumanPlayer())) {
-            Label eliminatedLabel = new Label("❌ ELIMINATED - Cannot play more cards");
+            Label eliminatedLabel = new Label("ELIMINADO - No puedes jugar más cartas");
             eliminatedLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px; -fx-font-weight: bold;");
             this.gridPaneCardsPlayer.add(eliminatedLabel, 0, 0);
             return;
@@ -154,14 +178,12 @@ public class GameUnoController implements Observer {
 
             boolean canPlayCard = card.canBePlayed(gameModel.getCurrentSum());
 
-            // Only enable interaction if it's human turn and card can be played
             if (isHumanTurn && canPlayCard && !gameModel.isPlayerEliminated(gameModel.getHumanPlayer())) {
                 cardImageView.setStyle("-fx-effect: dropshadow(gaussian, #00ff00, 15, 0.7, 0, 0); -fx-cursor: hand;");
                 cardImageView.setOnMouseClicked((MouseEvent event) -> {
                     handleCardPlay(card);
                 });
 
-                // Add hover effects
                 cardImageView.setOnMouseEntered(event -> {
                     cardImageView.setScaleX(1.1);
                     cardImageView.setScaleY(1.1);
@@ -182,87 +204,91 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Handles the card play action when a player clicks on a card.
+     *
+     * @param card the card to be played
+     */
     private void handleCardPlay(Card card) {
         try {
             if (gameModel == null) {
-                showErrorAlert("Game not initialized", "The game has not been initialized correctly.");
+                showErrorAlert("Juego no inicializado", "El juego no se ha inicializado correctamente.");
                 return;
             }
 
             if (!isHumanTurn) {
-                showWarningAlert("Not your turn", "Wait for your turn to play a card.");
+                showWarningAlert("No es tu turno", "Espera tu turno para jugar una carta.");
                 return;
             }
 
             if (card.canBePlayed(gameModel.getCurrentSum())) {
-                // Play the card
                 gameModel.playCard(card, gameModel.getHumanPlayer());
                 tableImageView.setImage(card.getImage());
 
-                // Update UI immediately after playing card
                 updateUI();
 
-                // Take card from deck after playing (as per game rules)
                 try {
                     gameModel.takeCardFromDeck(gameModel.getHumanPlayer());
-                    updateUI(); // Update again after taking card
+                    updateUI();
 
-                    // Check if player is eliminated after taking card
                     if (!gameModel.canPlayerPlay(gameModel.getHumanPlayer())) {
-                        showInformationAlert("Player Eliminated", "You cannot play any card. You are eliminated!");
+                        showInformationAlert("Jugador Eliminado", "¡No puedes jugar ninguna carta. Has sido eliminado!");
                         gameModel.eliminatePlayer(gameModel.getHumanPlayer());
                         updateUI();
                     }
 
                 } catch (Exception e) {
-                    System.err.println("Error taking card after play: " + e.getMessage());
+                    System.err.println("Error al tomar carta después de jugar: " + e.getMessage());
                 }
 
-                // Move to next turn only if player is not eliminated
                 if (!gameModel.isPlayerEliminated(gameModel.getHumanPlayer())) {
                     gameModel.nextTurn();
                     updateCurrentPlayerIndicator();
                     gameTimer.startTurnTimer(gameModel.getCurrentPlayer().getTypePlayer());
                 }
 
-                // Check for game over
                 if (gameModel.isGameOver()) {
                     handleGameOver();
                 }
 
             } else {
-                showWarningAlert("Invalid move", "This card would make the sum exceed 50.");
+                showWarningAlert("Movimiento inválido", "Esta carta haría que la suma exceda 50.");
             }
         } catch (PlayerEliminatedException e) {
-            showErrorAlert("Player Eliminated", e.getMessage());
+            showErrorAlert("Jugador Eliminado", e.getMessage());
             updateUI();
         } catch (InvalidCardException e) {
-            showErrorAlert("Invalid Card", e.getMessage());
+            showErrorAlert("Carta Inválida", e.getMessage());
         } catch (Exception e) {
-            showErrorAlert("Error playing card", e.getMessage());
+            showErrorAlert("Error al jugar carta", e.getMessage());
         }
     }
 
+    /**
+     * Handles the take card button action.
+     * Allows the human player to take a card from the deck.
+     *
+     * @param event the action event
+     */
     @FXML
     void onHandleTakeCard(ActionEvent event) {
         if (gameModel == null) {
-            showErrorAlert("Game not initialized", "The game has not been initialized correctly.");
+            showErrorAlert("Juego no inicializado", "El juego no se ha inicializado correctamente.");
             return;
         }
 
         try {
             if (!isHumanTurn) {
-                showWarningAlert("Not your turn", "You can only take cards on your turn.");
+                showWarningAlert("No es tu turno", "Solo puedes tomar cartas en tu turno.");
                 return;
             }
 
             Card newCard = gameModel.takeCardFromDeck(gameModel.getHumanPlayer());
             printCardsHumanPlayer();
-            showInformationAlert("Card Taken", "You have taken a card from the deck.");
+            showInformationAlert("Carta Tomada", "Has tomado una carta del mazo.");
 
-            // Check if player is eliminated after taking card
             if (!gameModel.canPlayerPlay(gameModel.getHumanPlayer())) {
-                showInformationAlert("Player Eliminated", "You cannot play any card. You are eliminated!");
+                showInformationAlert("Jugador Eliminado", "¡No puedes jugar ninguna carta. Has sido eliminado!");
                 gameModel.eliminatePlayer(gameModel.getHumanPlayer());
                 updateUI();
             } else {
@@ -271,19 +297,26 @@ public class GameUnoController implements Observer {
             }
 
         } catch (Exception e) {
-            showErrorAlert("Error taking card", e.getMessage());
+            showErrorAlert("Error al tomar carta", e.getMessage());
         }
     }
 
+    /**
+     * Updates the table information labels (sum, cards on table, cards remaining).
+     */
     private void updateTableInfo() {
         if (gameModel == null) return;
 
         int currentSum = gameModel.getCurrentSum();
-        lblTableSum.setText("Sum: " + currentSum + "/50");
+        lblTableSum.setText("Suma: " + currentSum + "/50");
         lblCardsOnTable.setText(String.valueOf(gameModel.getTable().getNumberOfCards()));
         lblCardsRemaining.setText(String.valueOf(gameModel.getDeck().size()));
     }
 
+    /**
+     * Updates the progress bar based on the current sum (0-50).
+     * Changes color based on proximity to the limit.
+     */
     private void updateProgressBar() {
         if (gameModel == null) return;
 
@@ -299,14 +332,22 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Updates player information labels (human cards count, active players count).
+     */
     private void updatePlayerInfo() {
         if (gameModel == null) return;
 
-        lblHumanCards.setText("Your cards: " + gameModel.getHumanPlayer().getCardsPlayer().size());
+        lblHumanCards.setText("Tus cartas: " + gameModel.getHumanPlayer().getCardsPlayer().size());
         int activePlayers = countActivePlayers();
-        lblActivePlayers.setText("Active players: " + activePlayers);
+        lblActivePlayers.setText("Jugadores activos: " + activePlayers);
     }
 
+    /**
+     * Counts the number of active (non-eliminated) players.
+     *
+     * @return the number of active players
+     */
     private int countActivePlayers() {
         if (gameModel == null) return 0;
 
@@ -325,6 +366,9 @@ public class GameUnoController implements Observer {
         return activePlayers;
     }
 
+    /**
+     * Updates the display of machine players with their current status.
+     */
     private void updateMachinePlayersDisplay() {
         machinePlayersContainer.getChildren().clear();
 
@@ -336,14 +380,14 @@ public class GameUnoController implements Observer {
 
             String status;
             if (isEliminated) {
-                status = "❌ ELIMINATED";
+                status = "ELIMINADO";
             } else if (machine.equals(gameModel.getCurrentPlayer())) {
-                status = "🎯 TURN - " + machine.getCardsPlayer().size() + " cards";
+                status = "TURNO - " + machine.getCardsPlayer().size() + " cartas";
             } else {
-                status = "✅ " + machine.getCardsPlayer().size() + " cards";
+                status = machine.getCardsPlayer().size() + " cartas";
             }
 
-            Label machineLabel = new Label("Machine " + (i + 1) + ": " + status);
+            Label machineLabel = new Label("Máquina " + (i + 1) + ": " + status);
 
             if (isEliminated) {
                 machineLabel.setStyle("-fx-text-fill: #FF6B6B; -fx-font-weight: bold; -fx-padding: 5px;");
@@ -357,21 +401,28 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Updates the current player indicator label.
+     */
     private void updateCurrentPlayerIndicator() {
         if (gameModel == null) return;
 
         Player currentPlayer = gameModel.getCurrentPlayer();
-        if (currentPlayer.getTypePlayer().startsWith("HUMAN")) {
-            lblCurrentPlayer.setText("🎮 Turn: Human Player");
+        if (currentPlayer.getTypePlayer().startsWith("JUGADOR_HUMANO")) {
+            lblCurrentPlayer.setText("Turno: Jugador Humano");
             lblCurrentPlayer.setStyle("-fx-text-fill: #4ECDC4; -fx-font-weight: bold; -fx-font-size: 14px;");
             this.isHumanTurn = true;
         } else {
-            lblCurrentPlayer.setText("🤖 Turn: " + currentPlayer.getTypePlayer());
+            lblCurrentPlayer.setText("Turno: " + currentPlayer.getTypePlayer());
             lblCurrentPlayer.setStyle("-fx-text-fill: #FF6B6B; -fx-font-weight: bold; -fx-font-size: 14px;");
             this.isHumanTurn = false;
         }
     }
 
+    /**
+     * Handles game over state.
+     * Stops all threads and displays the winner.
+     */
     private void handleGameOver() {
         for (ThreadMachinePlayer thread : machineThreads) {
             thread.stopThread();
@@ -381,22 +432,34 @@ public class GameUnoController implements Observer {
 
         Player winner = gameModel.determineWinner();
         String winnerName = winner != null ?
-                (winner.getTypePlayer().startsWith("HUMAN") ? "🎉 Human Player!" : "🤖 " + winner.getTypePlayer()) :
-                "No winner";
+                (winner.getTypePlayer().startsWith("JUGADOR_HUMANO") ? "¡Jugador Humano!" : winner.getTypePlayer()) :
+                "Sin ganador";
 
-        lblCurrentPlayer.setText("GAME OVER! Winner: " + winnerName);
+        lblCurrentPlayer.setText("¡FIN DEL JUEGO! Ganador: " + winnerName);
         lblCurrentPlayer.setStyle("-fx-text-fill: #FFD700; -fx-font-weight: bold; -fx-font-size: 16px;");
 
-        showInformationAlert("Game Over!", "The winner is: " + winnerName + "\n\nTotal time: " +
+        showInformationAlert("¡Fin del Juego!", "El ganador es: " + winnerName + "\n\nTiempo total: " +
                 formatTime(gameTimer.getGameDuration()));
     }
 
+    /**
+     * Formats time in seconds to MM:SS format.
+     *
+     * @param seconds the time in seconds
+     * @return formatted time string
+     */
     private String formatTime(long seconds) {
         long minutes = seconds / 60;
         long remainingSeconds = seconds % 60;
         return String.format("%02d:%02d", minutes, remainingSeconds);
     }
 
+    /**
+     * Shows an error alert dialog.
+     *
+     * @param title the title of the alert
+     * @param message the message content
+     */
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -405,6 +468,12 @@ public class GameUnoController implements Observer {
         alert.showAndWait();
     }
 
+    /**
+     * Shows a warning alert dialog.
+     *
+     * @param title the title of the alert
+     * @param message the message content
+     */
     private void showWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
@@ -413,6 +482,12 @@ public class GameUnoController implements Observer {
         alert.showAndWait();
     }
 
+    /**
+     * Shows an information alert dialog.
+     *
+     * @param title the title of the alert
+     * @param message the message content
+     */
     private void showInformationAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -421,6 +496,12 @@ public class GameUnoController implements Observer {
         alert.showAndWait();
     }
 
+    /**
+     * Updates the observer with changes from Observable objects.
+     *
+     * @param o the observable object
+     * @param arg the argument passed by the observable
+     */
     @Override
     public void update(Observable o, Object arg) {
         if (o instanceof GameUnoModel && arg instanceof String) {
@@ -437,6 +518,11 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Handles the back button action to show previous cards.
+     *
+     * @param event the action event
+     */
     @FXML
     void onHandleBack(ActionEvent event) {
         if (gameModel != null && this.posInitCardToShow > 0) {
@@ -445,6 +531,11 @@ public class GameUnoController implements Observer {
         }
     }
 
+    /**
+     * Handles the next button action to show next cards.
+     *
+     * @param event the action event
+     */
     @FXML
     void onHandleNext(ActionEvent event) {
         if (gameModel != null && this.posInitCardToShow < this.gameModel.getHumanPlayer().getCardsPlayer().size() - 4) {
@@ -453,20 +544,15 @@ public class GameUnoController implements Observer {
         }
     }
 
-
-    @FXML
-    void onHandleUno(ActionEvent event) {
-        if (gameModel == null) {
-            showErrorAlert("Game not initialized", "The game has not been initialized correctly.");
-            return;
-        }
-        showInformationAlert("50ZO", "You shouted 50ZO! 🎯\nKeep it up!");
-    }
-
+    /**
+     * Handles the restart button action to restart the game.
+     *
+     * @param event the action event
+     */
     @FXML
     void onHandleRestart(ActionEvent event) {
         if (gameModel == null) {
-            showErrorAlert("Game not initialized", "The game has not been initialized correctly.");
+            showErrorAlert("Juego no inicializado", "El juego no se ha inicializado correctamente.");
             return;
         }
 
@@ -477,13 +563,18 @@ public class GameUnoController implements Observer {
             }
 
             initializeGame();
-            showInformationAlert("Game Restarted", "The game has been restarted.");
+            showInformationAlert("Juego Reiniciado", "El juego ha sido reiniciado.");
 
         } catch (Exception e) {
-            showErrorAlert("Error restarting", e.getMessage());
+            showErrorAlert("Error al reiniciar", e.getMessage());
         }
     }
 
+    /**
+     * Handles the exit button action to return to player selection screen.
+     *
+     * @param event the action event
+     */
     @FXML
     void onHandleExit(ActionEvent event) {
         try {
@@ -498,121 +589,27 @@ public class GameUnoController implements Observer {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/eiscuno/player-selection-view.fxml"));
             Parent root = loader.load();
             Stage selectionStage = new Stage();
-            selectionStage.setTitle("Cincuentazo - Player Selection");
+            selectionStage.setTitle("Cincuentazo - Selección de Jugadores");
             selectionStage.setScene(new Scene(root));
             selectionStage.setResizable(false);
             selectionStage.show();
 
         } catch (Exception e) {
-            showErrorAlert("Error exiting", e.getMessage());
+            showErrorAlert("Error al salir", e.getMessage());
         }
     }
 
+    /**
+     * Gets the game model.
+     *
+     * @return the current game model
+     */
     public GameUnoModel getGameModel() {
         return gameModel;
     }
 
-    private class GameTimer extends Observable implements Runnable {
-        private volatile boolean running;
-        private long startTime;
-        private long currentTime;
-        private long turnStartTime;
-        private String currentPlayer;
-
-        public GameTimer() {
-            this.running = false;
-            this.startTime = 0;
-            this.currentTime = 0;
-            this.turnStartTime = 0;
-            this.currentPlayer = "UNKNOWN";
-        }
-
-        public void startTimer() {
-            this.running = true;
-            this.startTime = System.currentTimeMillis();
-            this.turnStartTime = startTime;
-            new Thread(this, "GameTimer").start();
-        }
-
-        public void stopTimer() {
-            this.running = false;
-        }
-
-        public void startTurnTimer(String playerName) {
-            this.turnStartTime = System.currentTimeMillis();
-            this.currentPlayer = playerName;
-            notifyObservers("Turn started for: " + playerName);
-        }
-
-        @Override
-        public void run() {
-            while (running) {
-                try {
-                    currentTime = System.currentTimeMillis();
-                    updateDisplay();
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    System.out.println("Game timer interrupted: " + e.getMessage());
-                    break;
-                }
-            }
-        }
-
-        private void updateDisplay() {
-            long gameDuration = (currentTime - startTime) / 1000;
-            long turnDuration = (currentTime - turnStartTime) / 1000;
-
-            String timerInfo = String.format(
-                    "Time: %02d:%02d | Turn: %02ds",
-                    gameDuration / 60, gameDuration % 60, turnDuration
-            );
-
-            javafx.application.Platform.runLater(() -> {
-                setChanged();
-                notifyObservers(timerInfo);
-            });
-        }
-
-        public long getGameDuration() {
-            return (currentTime - startTime) / 1000;
-        }
-
-        public long getTurnDuration() {
-            return (currentTime - turnStartTime) / 1000;
-        }
-
-        public String getCurrentPlayer() {
-            return currentPlayer;
-        }
-
-        public boolean isRunning() {
-            return running;
-        }
-
-        private void notifyObservers(String message) {
-            setChanged();
-            super.notifyObservers(message);
-        }
-    }
     /**
-     * Displays the initial card on the table
-     */
-    private void displayInitialCard() {
-        if (gameModel == null || gameModel.getTable() == null) return;
-
-        try {
-            Card initialCard = gameModel.getTable().getCurrentCardOnTheTable();
-            if (initialCard != null) {
-                tableImageView.setImage(initialCard.getImage());
-                System.out.println("Initial card displayed: " + initialCard.getValue());
-            }
-        } catch (Exception e) {
-            System.err.println("Error displaying initial card: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Ensures the current table card is always displayed
+     * Ensures the current table card is always displayed.
      */
     private void ensureTableCardDisplayed() {
         if (gameModel == null || gameModel.getTable() == null) return;
@@ -624,6 +621,138 @@ public class GameUnoController implements Observer {
             }
         } catch (Exception e) {
             // Table might be empty, which is normal
+        }
+    }
+
+    /**
+     * Inner class for managing game and turn timers.
+     * Extends Observable to notify observers of time updates.
+     */
+    private class GameTimer extends Observable implements Runnable {
+        private volatile boolean running;
+        private long startTime;
+        private long currentTime;
+        private long turnStartTime;
+        private String currentPlayer;
+
+        /**
+         * Constructs a new GameTimer with default values.
+         */
+        public GameTimer() {
+            this.running = false;
+            this.startTime = 0;
+            this.currentTime = 0;
+            this.turnStartTime = 0;
+            this.currentPlayer = "DESCONOCIDO";
+        }
+
+        /**
+         * Starts the game timer.
+         */
+        public void startTimer() {
+            this.running = true;
+            this.startTime = System.currentTimeMillis();
+            this.turnStartTime = startTime;
+            new Thread(this, "GameTimer").start();
+        }
+
+        /**
+         * Stops the game timer.
+         */
+        public void stopTimer() {
+            this.running = false;
+        }
+
+        /**
+         * Starts or resets the turn timer for a specific player.
+         *
+         * @param playerName the name of the player whose turn is starting
+         */
+        public void startTurnTimer(String playerName) {
+            this.turnStartTime = System.currentTimeMillis();
+            this.currentPlayer = playerName;
+            notifyObservers("Turno iniciado para: " + playerName);
+        }
+
+        /**
+         * Main execution loop for the timer thread.
+         */
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    currentTime = System.currentTimeMillis();
+                    updateDisplay();
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    System.out.println("Temporizador del juego interrumpido: " + e.getMessage());
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Updates the timer display with current game and turn duration.
+         */
+        private void updateDisplay() {
+            long gameDuration = (currentTime - startTime) / 1000;
+            long turnDuration = (currentTime - turnStartTime) / 1000;
+
+            String timerInfo = String.format(
+                    "Tiempo: %02d:%02d | Turno: %02ds",
+                    gameDuration / 60, gameDuration % 60, turnDuration
+            );
+
+            javafx.application.Platform.runLater(() -> {
+                setChanged();
+                notifyObservers(timerInfo);
+            });
+        }
+
+        /**
+         * Gets the total game duration in seconds.
+         *
+         * @return the game duration in seconds
+         */
+        public long getGameDuration() {
+            return (currentTime - startTime) / 1000;
+        }
+
+        /**
+         * Gets the current turn duration in seconds.
+         *
+         * @return the turn duration in seconds
+         */
+        public long getTurnDuration() {
+            return (currentTime - turnStartTime) / 1000;
+        }
+
+        /**
+         * Gets the name of the current player.
+         *
+         * @return the current player name
+         */
+        public String getCurrentPlayer() {
+            return currentPlayer;
+        }
+
+        /**
+         * Checks if the timer is running.
+         *
+         * @return true if the timer is running, false otherwise
+         */
+        public boolean isRunning() {
+            return running;
+        }
+
+        /**
+         * Notifies observers of timer updates.
+         *
+         * @param message the message to send to observers
+         */
+        private void notifyObservers(String message) {
+            setChanged();
+            super.notifyObservers(message);
         }
     }
 }

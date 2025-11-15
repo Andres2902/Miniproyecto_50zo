@@ -4,9 +4,9 @@ package org.example.eiscuno.model.exceptions;
  * Checked exception thrown when attempting to perform an operation on an eliminated player.
  * This exception indicates that a player has been removed from the game.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class PlayerEliminatedException extends GameException {
 
@@ -44,7 +44,7 @@ public class PlayerEliminatedException extends GameException {
     /**
      * Gets the number of cards the player had when eliminated.
      *
-     * @return the number of cards
+     * @return the number of cards in hand at elimination
      */
     public int getCardsInHand() {
         return cardsInHand;

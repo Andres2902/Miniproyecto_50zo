@@ -2,11 +2,11 @@ package org.example.eiscuno.model.exceptions;
 
 /**
  * Base exception class for all game-related exceptions in Cincuentazo.
- * Provides a common structure for game-specific error handling.
+ * Provides a common structure for game-specific error handling with error codes and player tracking.
  *
- * @author Your Name
+ * @author Jairo Andrés Tegue
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public abstract class GameException extends Exception {
 
@@ -70,7 +70,7 @@ public abstract class GameException extends Exception {
     /**
      * Gets a detailed message including error code and player information.
      *
-     * @return the detailed error message
+     * @return the formatted error message with code and player information
      */
     @Override
     public String getMessage() {

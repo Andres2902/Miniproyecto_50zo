@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.Observable;
 
 /**
- * Main model class for the Cincuentazo game following MVC pattern
+ * Main model class for the Cincuentazo game following MVC pattern.
+ * Manages game state, player turns, card playing, and game rules enforcement.
  *
- * @author Jairo A. Tegue
+ * @author Jairo Andrés Tegue
  * @version 1.0
  * @since 2025
  */
@@ -28,8 +29,16 @@ public class GameUnoModel extends Observable {
     private boolean gameOver;
     private int numberOfMachinePlayers;
     private String gameStatus;
-    private List<Player> eliminatedPlayers; // Track eliminated players separately
+    private List<Player> eliminatedPlayers;
 
+    /**
+     * Constructs a new GameUnoModel with the specified players, deck, and table.
+     *
+     * @param humanPlayer the human player
+     * @param numberOfMachinePlayers the number of machine players (1-3)
+     * @param deck the deck of cards
+     * @param table the game table
+     */
     public GameUnoModel(Player humanPlayer, int numberOfMachinePlayers, Deck deck, Table table) {
         this.humanPlayer = humanPlayer;
         this.numberOfMachinePlayers = numberOfMachinePlayers;
@@ -44,6 +53,9 @@ public class GameUnoModel extends Observable {
         initializeMachinePlayers();
     }
 
+    /**
+     * Initializes the machine players for the game.
+     */
     private void initializeMachinePlayers() {
         for (int i = 0; i < numberOfMachinePlayers; i++) {
             machinePlayers.add(new Player("MACHINE_PLAYER_" + (i + 1)));
@@ -51,8 +63,10 @@ public class GameUnoModel extends Observable {
         notifyObservers("Machine players initialized: " + numberOfMachinePlayers);
     }
 
+    /**
+     * Starts the game by dealing initial cards and placing the first card on the table.
+     */
     public void startGame() {
-        // Deal 4 cards to each player
         for (int i = 0; i < 4; i++) {
             humanPlayer.addCard(this.deck.takeCard());
             for (Player machine : machinePlayers) {
@@ -60,12 +74,10 @@ public class GameUnoModel extends Observable {
             }
         }
 
-        // Place initial card on the table
         if (!deck.isEmpty()) {
             Card initialCard = deck.takeCard();
             table.addCardOnTheTable(initialCard);
 
-            // Notificar a los observadores sobre la carta inicial
             gameStatus = "Initial card: " + initialCard.getValue();
             notifyObservers("INITIAL_CARD:" + initialCard.getValue());
         }
@@ -74,6 +86,14 @@ public class GameUnoModel extends Observable {
         notifyObservers("Game started with " + (numberOfMachinePlayers + 1) + " players");
     }
 
+    /**
+     * Plays a card from a player's hand onto the table.
+     *
+     * @param card the card to play
+     * @param player the player playing the card
+     * @throws PlayerEliminatedException if the player has been eliminated
+     * @throws InvalidCardException if the card is null or cannot be played
+     */
     public void playCard(Card card, Player player) throws PlayerEliminatedException, InvalidCardException {
         validatePlayerAction(player);
 
@@ -89,10 +109,8 @@ public class GameUnoModel extends Observable {
             );
         }
 
-        // Play the card
         this.table.addCardOnTheTable(card);
 
-        // Remove card from player's hand
         int cardIndex = findCardIndex(player, card);
         if (cardIndex != -1) {
             player.removeCard(cardIndex);
@@ -102,6 +120,14 @@ public class GameUnoModel extends Observable {
         notifyObservers("Card played: " + card.getValue() + ", New sum: " + table.getCurrentSum());
     }
 
+    /**
+     * Makes a player take a card from the deck.
+     * If the deck is empty, it recycles cards from the table.
+     *
+     * @param player the player taking a card
+     * @return the card taken from the deck
+     * @throws PlayerEliminatedException if the player has been eliminated
+     */
     public Card takeCardFromDeck(Player player) throws PlayerEliminatedException {
         validatePlayerAction(player);
 
@@ -116,6 +142,13 @@ public class GameUnoModel extends Observable {
         return newCard;
     }
 
+    /**
+     * Validates that a player can perform an action (is current player and not eliminated).
+     *
+     * @param player the player to validate
+     * @throws PlayerEliminatedException if the player has been eliminated
+     * @throws IllegalArgumentException if the player is null or not the current player
+     */
     private void validatePlayerAction(Player player) throws PlayerEliminatedException {
         if (player == null) {
             throw new IllegalArgumentException("Player cannot be null");
@@ -130,6 +163,9 @@ public class GameUnoModel extends Observable {
         }
     }
 
+    /**
+     * Recycles cards from the table back into the deck when the deck is empty.
+     */
     private void recycleDeck() {
         ArrayList<Card> recycledCards = table.getAllCardsExceptLast();
         if (!recycledCards.isEmpty()) {
@@ -141,20 +177,20 @@ public class GameUnoModel extends Observable {
     }
 
     /**
-     * Finds a playable card for a player without causing recursion
+     * Finds a playable card for a player from their hand.
+     *
+     * @param player the player to find a card for
+     * @return a playable card, or null if none available
      */
     public Card findPlayableCard(Player player) {
-        // Check if player is in eliminated list first
         if (eliminatedPlayers.contains(player)) {
             return null;
         }
 
-        // Check if player has cards
         if (player.getCardsPlayer().isEmpty()) {
             return null;
         }
 
-        // Find playable card
         for (Card card : player.getCardsPlayer()) {
             if (card.canBePlayed(table.getCurrentSum())) {
                 return card;
@@ -164,15 +200,16 @@ public class GameUnoModel extends Observable {
     }
 
     /**
-     * Checks if player can play any card without recursion
+     * Checks if a player can play any card from their hand.
+     *
+     * @param player the player to check
+     * @return true if the player has at least one playable card, false otherwise
      */
     public boolean canPlayerPlay(Player player) {
-        // Simple check - if player is in eliminated list, they cannot play
         if (eliminatedPlayers.contains(player)) {
             return false;
         }
 
-        // Direct check for playable cards
         for (Card card : player.getCardsPlayer()) {
             if (card.canBePlayed(table.getCurrentSum())) {
                 return true;
@@ -182,35 +219,38 @@ public class GameUnoModel extends Observable {
     }
 
     /**
-     * Eliminates a player from the game
+     * Eliminates a player from the game.
+     * Sends the player's cards back to the deck and adds them to the eliminated players list.
+     *
+     * @param player the player to eliminate
      */
     public void eliminatePlayer(Player player) {
         if (eliminatedPlayers.contains(player)) {
-            return; // Already eliminated
+            return;
         }
 
         int cardsCount = player.getCardsPlayer().size();
 
-        // Send eliminated player's cards to the deck
         java.util.Stack<Card> cardStack = new java.util.Stack<>();
         cardStack.addAll(player.getCardsPlayer());
         deck.addCards(cardStack);
 
-        // Clear player's hand
         player.getCardsPlayer().clear();
 
-        // Add to eliminated players list
         eliminatedPlayers.add(player);
 
         gameStatus = player.getTypePlayer() + " eliminated with " + cardsCount + " cards. Sum: " + table.getCurrentSum();
         notifyObservers("Player eliminated: " + player.getTypePlayer() + ". Current sum: " + table.getCurrentSum());
 
-        // If eliminated player was current, move to next turn
         if (player.equals(getCurrentPlayer())) {
             nextTurn();
         }
     }
 
+    /**
+     * Advances the game to the next player's turn.
+     * Skips eliminated players automatically.
+     */
     public void nextTurn() {
         int totalPlayers = getTotalPlayers();
         int attempts = 0;
@@ -222,7 +262,6 @@ public class GameUnoModel extends Observable {
             attempts++;
 
             if (attempts >= totalPlayers * 2) {
-                // No active players found
                 gameOver = true;
                 gameStatus = "Game Over - No active players";
                 notifyObservers("Game Over - No active players");
@@ -235,12 +274,20 @@ public class GameUnoModel extends Observable {
     }
 
     /**
-     * Checks if player is eliminated - uses the eliminated players list
+     * Checks if a player has been eliminated from the game.
+     *
+     * @param player the player to check
+     * @return true if the player is eliminated, false otherwise
      */
     public boolean isPlayerEliminated(Player player) {
         return eliminatedPlayers.contains(player);
     }
 
+    /**
+     * Checks if the game is over (only one or zero active players remain).
+     *
+     * @return true if the game is over, false otherwise
+     */
     public Boolean isGameOver() {
         int activePlayers = countActivePlayers();
 
@@ -260,6 +307,11 @@ public class GameUnoModel extends Observable {
         return over;
     }
 
+    /**
+     * Counts the number of active (non-eliminated) players in the game.
+     *
+     * @return the number of active players
+     */
     private int countActivePlayers() {
         int activePlayers = 0;
 
@@ -276,6 +328,11 @@ public class GameUnoModel extends Observable {
         return activePlayers;
     }
 
+    /**
+     * Determines the winner of the game (the last remaining active player).
+     *
+     * @return the winning player, or null if no winner exists
+     */
     public Player determineWinner() {
         if (!isPlayerEliminated(humanPlayer)) {
             return humanPlayer;
@@ -290,11 +347,23 @@ public class GameUnoModel extends Observable {
         return null;
     }
 
+    /**
+     * Notifies all observers of a game state change.
+     *
+     * @param message the message to send to observers
+     */
     private void notifyObservers(String message) {
         setChanged();
         super.notifyObservers(message);
     }
 
+    /**
+     * Finds the index of a specific card in a player's hand.
+     *
+     * @param player the player whose hand to search
+     * @param card the card to find
+     * @return the index of the card, or -1 if not found
+     */
     private int findCardIndex(Player player, Card card) {
         for (int i = 0; i < player.getCardsPlayer().size(); i++) {
             if (player.getCardsPlayer().get(i).equals(card)) {
@@ -304,15 +373,29 @@ public class GameUnoModel extends Observable {
         return -1;
     }
 
-    // Getters
+    /**
+     * Gets the current sum of cards on the table.
+     *
+     * @return the current sum
+     */
     public int getCurrentSum() {
         return table.getCurrentSum();
     }
 
+    /**
+     * Gets the list of machine players.
+     *
+     * @return the list of machine players
+     */
     public List<Player> getMachinePlayers() {
         return machinePlayers;
     }
 
+    /**
+     * Gets the current player whose turn it is.
+     *
+     * @return the current player
+     */
     public Player getCurrentPlayer() {
         if (currentPlayerIndex == 0) {
             return humanPlayer;
@@ -321,26 +404,57 @@ public class GameUnoModel extends Observable {
         }
     }
 
+    /**
+     * Gets the total number of players in the game.
+     *
+     * @return the total number of players
+     */
     public int getTotalPlayers() {
         return machinePlayers.size() + 1;
     }
 
+    /**
+     * Gets the human player.
+     *
+     * @return the human player
+     */
     public Player getHumanPlayer() {
         return humanPlayer;
     }
 
+    /**
+     * Gets the game table.
+     *
+     * @return the table
+     */
     public Table getTable() {
         return table;
     }
 
+    /**
+     * Gets the deck of cards.
+     *
+     * @return the deck
+     */
     public Deck getDeck() {
         return deck;
     }
 
+    /**
+     * Gets the current game status message.
+     *
+     * @return the game status
+     */
     public String getGameStatus() {
         return gameStatus;
     }
 
+    /**
+     * Gets an array of currently visible cards for the human player.
+     *
+     * @param posInitCardToShow the starting position of cards to show
+     * @return an array of up to 4 visible cards
+     */
     public Card[] getCurrentVisibleCardsHumanPlayer(int posInitCardToShow) {
         int totalCards = this.humanPlayer.getCardsPlayer().size();
         int numVisibleCards = Math.min(4, totalCards - posInitCardToShow);

@@ -8,15 +8,19 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 /**
- * Represents the main stage of the Uno game application.
+ * Represents the main stage of the Cincuentazo game application.
  * This stage displays the game interface to the user.
+ *
+ * @author Jairo Andrés Tegue
+ * @version 1.0
+ * @since 2025
  */
 public class GameUnoStage extends Stage {
 
     /**
      * Constructs a new instance of GameUnoStage.
      *
-     * @throws IOException if an error occurs while loading the FXML file for the game interface.
+     * @throws IOException if an error occurs while loading the FXML file for the game interface
      */
     public GameUnoStage() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/eiscuno/game-uno-view.fxml"));
@@ -24,15 +28,13 @@ public class GameUnoStage extends Stage {
         try {
             root = loader.load();
         } catch (IOException e) {
-            // Re-throwing the caught IOException
-            throw new IOException("Error while loading FXML file", e);
+            throw new IOException("Error al cargar el archivo FXML", e);
         }
         Scene scene = new Scene(root);
-        // Configuring the stage
-        setTitle("EISC Uno"); // Sets the title of the stage
-        setScene(scene); // Sets the scene for the stage
-        setResizable(false); // Disallows resizing of the stage
-        show(); // Displays the stage
+        setTitle("EISC Cincuentazo");
+        setScene(scene);
+        setResizable(false);
+        show();
     }
 
     /**
@@ -47,8 +49,8 @@ public class GameUnoStage extends Stage {
     /**
      * Retrieves the singleton instance of GameUnoStage.
      *
-     * @return the singleton instance of GameUnoStage.
-     * @throws IOException if an error occurs while creating the instance.
+     * @return the singleton instance of GameUnoStage
+     * @throws IOException if an error occurs while creating the instance
      */
     public static GameUnoStage getInstance() throws IOException {
         return GameUnoStageHolder.INSTANCE != null ?
