@@ -6,13 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="eisc-uno" />
+        <module name="cincuentazo" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="eisc-uno" options="--enable-preview --add-modules javafx.controls,javafx.fxml" />
+      <module name="cincuentazo" options="--enable-preview --add-modules javafx.controls,javafx.fxml" />
     </option>
   </component>
 </project>

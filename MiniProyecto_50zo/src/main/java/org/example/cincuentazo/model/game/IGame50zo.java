@@ -1,0 +1,60 @@
+package org.example.cincuentazo.model.game;
+
+import org.example.cincuentazo.model.card.Card;
+import org.example.cincuentazo.model.player.Player;
+import org.example.cincuentazo.model.exceptions.GameFiftyException;
+
+/**
+ * Interface representing the Cincuentazo game functionality.
+ * Defines the contract for game operations and state management.
+ *
+ * @author Jairo Andrés Tegue
+ * @version 1.0
+ * @since 2025
+ */
+public interface IGame50zo {
+
+    /**
+     * Starts the Cincuentazo game with initial card distribution.
+     */
+    void startGame();
+
+    /**
+     * Makes a player draw a specified number of cards from the deck.
+     *
+     * @param player the player who will draw the cards
+     * @param numberOfCards the number of cards to be drawn
+     */
+    void eatCard(Player player, int numberOfCards);
+
+    /**
+     * Plays a card in the game, adding it to the table.
+     *
+     * @param card the card to be played
+     * @throws GameFiftyException if playing the card would exceed the maximum sum of 50
+     */
+    void playCard(Card card) throws GameFiftyException;
+
+    /**
+     * Handles the action when a player shouts "50ZO".
+     * Maintained for compatibility with the original interface.
+     *
+     * @param playerWhoSang the identifier of the player who shouted "50ZO"
+     */
+    void haveSungOne(String playerWhoSang);
+
+    /**
+     * Retrieves the current visible cards of the human player for display.
+     *
+     * @param posInitCardToShow the starting position of the cards to be shown
+     * @return an array of cards that are currently visible to the human player
+     */
+    Card[] getCurrentVisibleCardsHumanPlayer(int posInitCardToShow);
+
+    /**
+     * Checks if the game is over (only one player remains active).
+     *
+     * @return true if the game is over, false otherwise
+     */
+    Boolean isGameOver();
+}
